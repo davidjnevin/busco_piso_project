@@ -2,9 +2,13 @@ FROM python:3.11
 
 WORKDIR /app
 
+# App requirements
 COPY requirements.txt .
-
 RUN pip install --no-cache -r requirements.txt
+
+# Dev Requirements
+COPY requirements-dev.txt .
+RUN pip install --no-cache -r requirements-dev.txt
 
 COPY . .
 
