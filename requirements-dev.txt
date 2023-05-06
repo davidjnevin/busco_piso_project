@@ -1,2 +1,5 @@
 pytest
 pre-commit
+isort
+flake8
+black
