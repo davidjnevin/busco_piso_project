@@ -1,5 +1,11 @@
-fastapi
-uvicorn
-SQLAlchemy
-jinja2
 fastapi[all]
+uvicorn
+pydantic
+email-validator
+python-dotenv
+#db
+SQLAlchemy==2.0.12
+psycopg2
+alembic
+#frontend
+jinja2
