@@ -16,7 +16,7 @@ PYTHON_VERSION=python3.11
 WEB_DOCKER_SERVICE_NAME=busco_piso_web
 WEB_DOCKER_CONTAINER_NAME=busco_piso_web_container
 DB_DOCKER_SERVICE_NAME=busco_piso_db
-
+POSTGRES_USER=davidjnevin
 
 
 # target: all - Default target. Does nothing.
@@ -58,7 +58,7 @@ logs:
 # target: enter postgres shell
 .PHONY: postgres
 postgres:
-	${DOCKER_COMPOSE} exec ${DB_DOCKER_SERVICE_NAME} psql -U postgres
+	${DOCKER_COMPOSE} exec ${DB_DOCKER_SERVICE_NAME} psql -U ${POSTGRES_USER}
 
 .PHONY: build-schema
 build-schema:
