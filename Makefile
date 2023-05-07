@@ -100,11 +100,11 @@ lint:
 
 # target: check code flake8, isort, and black --check-only
 check-code:
-	${DOCKER_COMPOSE} exec ${WEB_DOCKER_CONTAINER_NAME} flake8 --config /app/.flake8 $(APP_HOME)
-	${DOCKER_COMPOSE} exec ${WEB_DOCKER_CONTAINER_NAME} isort --check-only --profile black $(APP_HOME)
-	${DOCKER_COMPOSE} exec ${WEB_DOCKER_CONTAINER_NAME} black --check $(APP_HOME)
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} flake8 --config /app/.flake8 $(APP_HOME)
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} isort --check-only --profile black $(APP_HOME)
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} black --check $(APP_HOME)
 
 # Format code using isort and black
 clean-code:
-	${DOCKER_COMPOSE} exec ${WEB_DOCKER_CONTAINER_NAME} isort --profile black $(APP_HOME)
-	${DOCKER_COMPOSE} exec ${WEB_DOCKER_CONTAINER_NAME} black $(APP_HOME)
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} isort --profile black $(APP_HOME)
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} black $(APP_HOME)
