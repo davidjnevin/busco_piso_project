@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  busco_piso_web:
+    container_name: ${WEB_DOCKER_CONTAINER_NAME}
+    build: .
+    command: uvicorn src.main:app --host 0.0.0.0 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - busco_piso_db
+
+  busco_piso_db:
+    image: "postgres:latest"
+    container_name: ${DB_DOCKER_CONTAINER_NAME}
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

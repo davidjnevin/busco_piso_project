@@ -1,43 +1,110 @@
+# Include the .env file
+include .env
+export
+
 # Define constants
-IMAGE_NAME := busco_piso_project
-CONTAINER_NAME := busco_piso_container
-DOCKER_RUN := docker run --rm -v $(PWD):/app $(IMAGE_NAME)
-APP_HOME := /app/src /app/tests
 
 .PHONY: build test shell check-code clean-code up down clean-volumes
+SHELL=/bin/bash
+DOCKER_COMPOSE=docker compose
+DOCKER_ENVIRONMENT=docker-compose.yml
+APP_HOME := /app/src /app/tests
+PACKAGE_NAME=app
+VENV_FOLDER=venv
+LAUNCH_IN_VENV=source ${VENV_FOLDER}/bin/activate &&
+PYTHON_VERSION=python3.11
+WEB_DOCKER_SERVICE_NAME=busco_piso_web
+WEB_DOCKER_CONTAINER_NAME=busco_piso_web_container
+DB_DOCKER_SERVICE_NAME=busco_piso_db
 
-# Build the Docker image
+
+
+# target: all - Default target. Does nothing.
+all:
+	@echo "Hello $(LOGNAME), nothing to do by default"
+	@echo "Try 'make help'"
+
+# target: help - Display callable targets.
+help:
+	@egrep "^# target:" [Mm]akefile
+
+# target: setup - prepare environment
+setup:
+	rm -rf ${VENV_FOLDER}
+	${PYTHON_VERSION} -m venv ${VENV_FOLDER}
+	${LAUNCH_IN_VENV} pip install -r requirements.txt
+	${LAUNCH_IN_VENV} pip install -r requirements-dev.txt
+
+# target: build - Build the docker images
 build:
-	docker build -t $(IMAGE_NAME) .
+	${DOCKER_COMPOSE} -f ${DOCKER_ENVIRONMENT} build
 
-# Run tests using pytest within the Docker container
+# Run the container in detached mode with port mapping
+run:
+	${DOCKER_COMPOSE} -f ${DOCKER_ENVIRONMENT} up -d
+
+# taget: down - Stop the project
+down:
+	${DOCKER_COMPOSE} -f ${DOCKER_ENVIRONMENT} down -v
+
+# target: clean-volumes - Stop the project and clean all volumes
+clean-volumes:
+	${DOCKER_COMPOSE} -f ${DOCKER_ENVIRONMENT} down -v
+
+# target: logs - Show project logs
+logs:
+	${DOCKER_COMPOSE} -f ${DOCKER_ENVIRONMENT} logs -f
+
+# target: enter postgres shell
+.PHONY: postgres
+postgres:
+	${DOCKER_COMPOSE} exec ${DB_DOCKER_SERVICE_NAME} psql -U postgres
+
+.PHONY: build-schema
+build-schema:
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} python app/db.py
+
+# target: flake8 - check code
+.PHONY: flake8
+flake8:
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} flake8 .
+
+# target: black - check code
+.PHONY: black-diff
+black-diff:
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} black . --diff
+
+# target: black - check code
+.PHONY: black-check
+black-check:
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} black . --check
+
+# target: black - check code
+.PHONY: black
+black:
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} black .
+
+.PHONY: isort
+isort:
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} isort .
+
+# target: test - test code
+.PHONY: test
 test:
-	docker exec $(CONTAINER_NAME) pytest
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_SERVICE_NAME} python -m pytest
 
-# Open an interactive shell within the Docker container
-shell:
-	docker run -it --rm $(IMAGE_NAME) bash
+# target: lint - Lint the code
+.PHONY: lint
+lint:
+	${PRE_RUN_API_COMMAND} lint
 
-# Check code using flake8, isort, and black without making any changes
+# target: check code flake8, isort, and black --check-only
 check-code:
-	docker exec $(CONTAINER_NAME) flake8 --config /app/.flake8 $(APP_HOME)
-	docker exec $(CONTAINER_NAME) isort --check-only --profile black $(APP_HOME)
-	docker exec $(CONTAINER_NAME) black --check $(APP_HOME)
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_CONTAINER_NAME} flake8 --config /app/.flake8 $(APP_HOME)
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_CONTAINER_NAME} isort --check-only --profile black $(APP_HOME)
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_CONTAINER_NAME} black --check $(APP_HOME)
 
 # Format code using isort and black
 clean-code:
-	docker exec $(CONTAINER_NAME) isort --profile black $(APP_HOME)
-	docker exec $(CONTAINER_NAME) black $(APP_HOME)
-
-# Run the container in detached mode with port mapping
-up:
-	docker run -d --name $(CONTAINER_NAME) -p 8000:8000 $(IMAGE_NAME)
-
-# Stop and remove the container
-down:
-	docker stop $(CONTAINER_NAME)
-	docker rm $(CONTAINER_NAME)
-
-# Clean up dangling volumes
-clean-volumes:
-	docker volume prune -f
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_CONTAINER_NAME} isort --profile black $(APP_HOME)
+	${DOCKER_COMPOSE} exec ${WEB_DOCKER_CONTAINER_NAME} black $(APP_HOME)
