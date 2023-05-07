@@ -1,6 +1,15 @@
-FROM python:3.11
+FROM python:3.10-bullseye
 
 WORKDIR /app
+#set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONBUFFERED 1
+
+# install system dependencies
+RUN apt-get update \
+  && apt-get -y install netcat gcc postgresql \
+  && apt-get clean
+
 
 # App requirements
 COPY requirements.txt .
